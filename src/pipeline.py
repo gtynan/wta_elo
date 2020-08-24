@@ -3,7 +3,7 @@ import pandas as pd
 
 from .data_ingestion import get_raw_games
 from .data_cleaning import score_to_int, get_player_map, surface_to_one_hot, get_inferred_date
-from .constants import PIPELINE_DATA_FILE, J_WINNER_COL, J_LOSER_COL, J_SCORE_COL, J_SURFACE_COL, SURFACE_MAP, CLEAN_DATA_FILE_PATH, J_T_NAME, J_T_DATE, J_ROUND, ROUND_ORDER
+from .constants import PIPELINE_DATA_FILE, CLEAN_DATA_FILE_PATH, SURFACE_MAP, ROUND_ORDER,  J_SURFACE_COL, J_WINNER_COL, J_LOSER_COL, J_SCORE_COL, J_T_NAME, J_T_DATE, J_ROUND
 
 
 def run():
