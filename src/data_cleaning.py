@@ -70,3 +70,18 @@ def score_to_int(score: pd.Series) -> np.ndarray:
         game_scores[:, l_set_cols].sum(axis=1),
         # 2 - nan will return nan
         2 - w_sets]).T
+
+
+def surface_to_one_hot(surfaces: pd.Series, surface_map: Dict[str, str]) -> Tuple[np.array]:
+    """Convert surface to one hot encoding and limit categories to surface map values
+
+    Args:
+        surfaces (pd.Series)): Series containing all playing surfaces
+        surface_map (Dict[str, str]): Map indicating what to rename certain surfaces to
+
+    Returns:
+        Tuple[np.array]: surface categories, One hot surface encoding
+    """
+    surfaces = surfaces.map(surface_map)
+    surface_categories = np.unique(list(surface_map.values()))
+    return surface_categories, pd.get_dummies(pd.Categorical(surfaces, categories=surface_categories)).values

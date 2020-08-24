@@ -2,7 +2,8 @@ import pytest
 import pandas as pd
 import numpy as np
 
-from src.data_cleaning import score_to_int, get_player_map
+from src.data_cleaning import score_to_int, get_player_map, surface_to_one_hot
+from src.constants import J_SURFACE_COL, SURFACE_MAP
 
 
 def test_get_player_map():
@@ -33,3 +34,17 @@ def test_score_to_int():
     # only the first score should return valid values
     np.testing.assert_array_equal(result[0], [13, 2, 6, 0])
     np.testing.assert_array_equal(result[1:], np.NaN)
+
+
+def test_surface_to_one_hot():
+
+    surfaces = pd.Series(data=np.array(["Grass", "Hard", "Clay", "Carpet"]))
+
+    s_categories, s_one_hot = surface_to_one_hot(surfaces, SURFACE_MAP)
+    t_data = pd.DataFrame(data=s_one_hot, columns=s_categories)
+
+    assert t_data.loc[0, 'Grass'] == 1
+    assert t_data.loc[1, 'Hard'] == 1
+    assert t_data.loc[2, 'Clay'] == 1
+    assert t_data.loc[3, 'Grass'] == 1
+    assert all(t_data.sum(axis=1) == 1)
