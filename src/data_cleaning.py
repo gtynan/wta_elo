@@ -33,6 +33,7 @@ def score_to_int(score: pd.Series) -> Tuple[np.ndarray]:
         game_scores[:, i:i+2] = set_games.apply(pd.to_numeric, errors='coerce')
 
     # winning player must win at least 12 games otherwise score incorrect
+    # we do not >= to catch nans
     game_scores[~(game_scores[:, w_set_cols].sum(axis=1) >= 12)] = np.NaN
 
     # counting number of sets won by winner
