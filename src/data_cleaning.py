@@ -3,6 +3,29 @@ import pandas as pd
 import numpy as np
 
 
+def get_player_map(data: pd.DataFrame, w_col: str, l_col: str) -> Tuple[Dict[str, int], np.ndarray]:
+    """Generates a dictionary containing each players name as key and a unique int as value, also returns winner and loser columns mapped to new int id
+
+    Args:
+        data (pd.DataFrame): data
+        w_col (str): column containing winners name
+        l_col (str): column containing losers name
+
+    Returns:
+        Tuple[[Dict[str, int], np.ndarray]: unique identifier for each player, array of winner and loser ids for each game
+    """
+    # generate unique id for each player
+    player_map = {player: i for i, player in enumerate(
+        np.unique(data[[w_col, l_col]].values.ravel())
+    )}
+
+    # map player to id
+    w_ids = data[w_col].map(player_map)
+    l_ids = data[l_col].map(player_map)
+
+    return player_map, np.column_stack((w_ids, l_ids))
+
+
 def score_to_int(score: pd.Series) -> np.ndarray:
     """Converts series of string scores to int values representing games and sets won by winner and loser.
 
@@ -47,19 +70,3 @@ def score_to_int(score: pd.Series) -> np.ndarray:
         game_scores[:, l_set_cols].sum(axis=1),
         # 2 - nan will return nan
         2 - w_sets]).T
-
-
-def get_player_map(data: pd.DataFrame, w_col: str, l_col: str) -> Dict[str, int]:
-    """Generates a dictionary containing each players name as key and a unique int as value
-
-    Args:
-        data (pd.DataFrame): data
-        w_col (str): column containing winners name
-        l_col (str): column containing losers name
-
-    Returns:
-        Dict[str, int]: unique identifier for each player
-    """
-    return {player: i for i, player in enumerate(
-        np.unique(data[[w_col, l_col]].values.ravel())
-    )}
