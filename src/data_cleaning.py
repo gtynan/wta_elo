@@ -1,4 +1,4 @@
-from typing import Tuple, Dict
+from typing import Tuple, Dict, List
 import pandas as pd
 import numpy as np
 
@@ -84,3 +84,38 @@ def surface_to_one_hot(surfaces: pd.Series, surface_map: Dict[str, str]) -> Tupl
     surfaces = surfaces.map(surface_map)
     surface_categories = np.unique(list(surface_map.values()))
     return surface_categories, pd.get_dummies(pd.Categorical(surfaces, categories=surface_categories)).values
+
+
+# series to preserve index (despite sorting within function)
+def get_inferred_date(
+        data: pd.DataFrame, t_name_col: str, t_date_col: str, round_col: str, round_order: List[str]
+) -> pd.Series:
+
+    # copying to ensure don't alter original
+    data = data[[t_name_col, t_date_col, round_col]].copy(deep=True)
+    # round as ordered categorical
+    data['r_order'] = pd.Categorical(data[round_col], categories=round_order, ordered=True)
+    # convert to date
+    data[t_date_col] = pd.to_datetime(data[t_date_col], format='%Y%m%d')
+
+    # low to high date then round
+    data = data.sort_values(by=[t_date_col, 'r_order'])
+
+    # this is where it gets complex to ensure speed
+
+    # group by date and name to ensure same tournament,
+    # pandas unique orders first come first served hence sort earlier means early round first later rounds after
+    # apply series splits list in dataframe, group by is now index and columns are 0-> max number of rounds,
+    # each tournament only has values as far as their max hence column value is round order
+    # row for each unique tournament
+    round_order_df = data.groupby([t_date_col, t_name_col])['r_order'].unique().apply(pd.Series)
+
+    # map each row to their round order
+    # by setting the group by columns as our original data index we can get row data just like a dictionary
+    data_rounds = round_order_df.loc[data.set_index([t_date_col, t_name_col]).index].values
+
+    # round val contains column data round was in, columns are numeric 0 -> and reflect position of round
+    # relative to all rounds in said tournament
+    _, round_val = np.where(data[round_col].values.reshape(-1, 1) == data_rounds)
+
+    return data.loc[:, t_date_col] + pd.to_timedelta(round_val, unit='day')

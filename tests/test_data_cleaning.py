@@ -1,9 +1,10 @@
 import pytest
 import pandas as pd
 import numpy as np
+from datetime import datetime, timedelta
 
-from src.data_cleaning import score_to_int, get_player_map, surface_to_one_hot
-from src.constants import J_SURFACE_COL, SURFACE_MAP
+from src.data_cleaning import score_to_int, get_player_map, surface_to_one_hot, get_inferred_date
+from src.constants import J_SURFACE_COL, SURFACE_MAP, J_T_DATE, J_T_NAME, J_ROUND, ROUND_ORDER
 
 
 def test_get_player_map():
@@ -48,3 +49,27 @@ def test_surface_to_one_hot():
     assert t_data.loc[2, 'Clay'] == 1
     assert t_data.loc[3, 'Grass'] == 1
     assert all(t_data.sum(axis=1) == 1)
+
+
+def test_get_inferred_date():
+    start_date = datetime.strptime("20200101", '%Y%m%d')
+
+    data = pd.DataFrame(data=np.array([
+        [start_date, 'Test1', 'R16'],
+        [start_date, 'Test2', 'R16'],
+        [start_date, 'Test1', 'QF'],
+        [start_date, 'Test1', 'SF'],
+        [start_date, 'Test1', 'QF'],
+    ]), index=[4, 2, 6, 1, 10], columns=[J_T_DATE, J_T_NAME, J_ROUND])
+
+    # expected dates, func will reorder on dates but maintain index
+    e_dates = pd.Series(data=np.array(
+        [start_date,
+         start_date,
+         start_date + timedelta(days=1),
+         start_date + timedelta(days=1),
+         start_date + timedelta(days=2)],
+        dtype='datetime64[ns]'), index=[4, 2, 6, 10, 1])
+
+    dates = get_inferred_date(data, J_T_NAME, J_T_DATE, J_ROUND, ROUND_ORDER)
+    pd.testing.assert_series_equal(dates, e_dates)

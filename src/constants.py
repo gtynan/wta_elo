@@ -16,9 +16,21 @@ SURFACE_MAP = {
     'Carpet': 'Grass'
 }
 
+ROUND_ORDER = [
+    'Q1', 'Q2', 'Q3',  # qualifiers
+    'RR',  # round robin
+    'R128', 'R64', 'R32',
+    'R16', 'QF', 'SF',
+    'BR',  # bronze round
+    'F'
+]
+
 # various columns, jeff sackman columns prefixed with J
 SOURCE_COL = 'source'
 J_WINNER_COL = 'winner_name'
 J_LOSER_COL = 'loser_name'
 J_SCORE_COL = 'score'
 J_SURFACE_COL = 'surface'
+J_T_DATE = 'tourney_date'
+J_T_NAME = 'tourney_name'
+J_ROUND = 'round'
