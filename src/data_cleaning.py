@@ -3,14 +3,14 @@ import pandas as pd
 import numpy as np
 
 
-def score_to_int(score: pd.Series) -> Tuple[np.ndarray]:
-    """Converts series of string scores to int values representing games and sets won by winner and loser
+def score_to_int(score: pd.Series) -> np.ndarray:
+    """Converts series of string scores to int values representing games and sets won by winner and loser.
 
     Args:
         score (pd.Series): series of scores
 
     Returns:
-        Tuple[np.array]: WGames, WSets, LGames, LSets
+        np.ndarray: matrix containing [WGames, WSets, LGames, LSets] each row is a game 
     """
     # regex removes brackets and their contents (not interested in tiebreaks)
     score = score.str.replace(r'\([^)]*\)', '').str.strip()
@@ -33,7 +33,7 @@ def score_to_int(score: pd.Series) -> Tuple[np.ndarray]:
         game_scores[:, i:i+2] = set_games.apply(pd.to_numeric, errors='coerce')
 
     # winning player must win at least 12 games otherwise score incorrect
-    # we do not >= to catch nans
+    # we do not >= to catch NaNs
     game_scores[~(game_scores[:, w_set_cols].sum(axis=1) >= 12)] = np.NaN
 
     # counting number of sets won by winner
@@ -41,4 +41,9 @@ def score_to_int(score: pd.Series) -> Tuple[np.ndarray]:
     # winner must win at least 2 sets
     w_sets[w_sets < 2] = np.NaN
 
-    return game_scores[:, w_set_cols].sum(axis=1), w_sets, game_scores[:, l_set_cols].sum(axis=1), 2 - w_sets
+    return np.array([
+        game_scores[:, w_set_cols].sum(axis=1),
+        w_sets,
+        game_scores[:, l_set_cols].sum(axis=1),
+        # 2 - nan will return nan
+        2 - w_sets]).T
