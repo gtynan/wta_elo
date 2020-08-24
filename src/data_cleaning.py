@@ -43,8 +43,8 @@ def score_to_int(score: pd.Series) -> np.ndarray:
 
     # empty array to be filled with game scores
     game_scores = np.zeros((len(score), 6))
-    # 0, 2, 4 winner cols and 1, 3, 5 loser cols
-    w_set_cols, l_set_cols = range(0, 4, 2), range(1, 5, 2)
+    # winner and loser columns
+    w_set_cols, l_set_cols = [0, 2, 4], [1, 3, 5]
 
     # looping over each column (set score ie 6-0)
     for i, (_, set_series) in enumerate(set_df.iteritems()):
@@ -54,21 +54,20 @@ def score_to_int(score: pd.Series) -> np.ndarray:
         # errors coerce means if not numeric give null
         game_scores[:, i:i+2] = set_games.apply(pd.to_numeric, errors='coerce')
 
-    # winning player must win at least 12 games otherwise score incorrect
-    # we do not >= to catch NaNs
-    game_scores[~(game_scores[:, w_set_cols].sum(axis=1) >= 12)] = np.NaN
+    # number of games won by winner and loser
+    w_games = np.nansum(game_scores[:, w_set_cols], axis=1)
+    l_games = np.nansum(game_scores[:, l_set_cols], axis=1)
 
-    # counting number of sets won by winner
-    w_sets = np.sum(game_scores[:, w_set_cols] > game_scores[:, l_set_cols], axis=1).astype(float)
-    # winner must win at least 2 sets
-    w_sets[w_sets < 2] = np.NaN
+    # number of sets won by winner and loser
+    w_sets = np.nansum(game_scores[:, w_set_cols] > game_scores[:, l_set_cols], axis=1)
+    l_sets = np.nansum(game_scores[:, w_set_cols] < game_scores[:, l_set_cols], axis=1)
 
-    return np.column_stack((
-        game_scores[:, w_set_cols].sum(axis=1),
-        w_sets,
-        game_scores[:, l_set_cols].sum(axis=1),
-        # 2 - nan will return nan
-        2 - w_sets))
+    score_matrix = np.column_stack((w_games, w_sets, l_games, l_sets))
+    # score invalid if winner wins less than 12 games or 2 sets
+    score_matrix[w_games < 12] = np.NaN
+    score_matrix[w_sets < 2] = np.NaN
+
+    return score_matrix
 
 
 def surface_to_one_hot(surfaces: pd.Series, surface_map: Dict[str, str]) -> Tuple[np.array]:

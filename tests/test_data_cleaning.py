@@ -29,12 +29,13 @@ def test_get_player_map():
 
 
 def test_score_to_int():
-    scores = pd.Series(['7-6(7) 6-0', '6-0 RET', '1-0 1-0', np.NaN])
+    scores = pd.Series(['7-6(7) 6-0', '6-0 RET', '1-0 1-0', np.NaN, '6-0 0-6 6-0'])
     result = score_to_int(scores)
 
-    # only the first score should return valid values
+    # only the first and last score should return valid values
     np.testing.assert_array_equal(result[0], [13, 2, 6, 0])
-    np.testing.assert_array_equal(result[1:], np.NaN)
+    np.testing.assert_array_equal(result[1:-1], np.NaN)
+    np.testing.assert_array_equal(result[-1], [12, 2, 6, 1])
 
 
 def test_surface_to_one_hot():
