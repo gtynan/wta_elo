@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Dict
 import pandas as pd
 import numpy as np
 
@@ -47,3 +47,19 @@ def score_to_int(score: pd.Series) -> np.ndarray:
         game_scores[:, l_set_cols].sum(axis=1),
         # 2 - nan will return nan
         2 - w_sets]).T
+
+
+def get_player_map(data: pd.DataFrame, w_col: str, l_col: str) -> Dict[str, int]:
+    """Generates a dictionary containing each players name as key and a unique int as value
+
+    Args:
+        data (pd.DataFrame): data
+        w_col (str): column containing winners name
+        l_col (str): column containing losers name
+
+    Returns:
+        Dict[str, int]: unique identifier for each player
+    """
+    return {player: i for i, player in enumerate(
+        np.unique(data[[w_col, l_col]].values.ravel())
+    )}
