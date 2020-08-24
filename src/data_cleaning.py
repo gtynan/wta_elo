@@ -18,7 +18,6 @@ def get_player_map(data: pd.DataFrame, w_col: str, l_col: str) -> Tuple[Dict[str
     player_map = {player: i for i, player in enumerate(
         np.unique(data[[w_col, l_col]].values.ravel())
     )}
-
     # map player to id
     w_ids = data[w_col].map(player_map)
     l_ids = data[l_col].map(player_map)
@@ -76,7 +75,7 @@ def surface_to_one_hot(surfaces: pd.Series, surface_map: Dict[str, str]) -> Tupl
     """Convert surface to one hot encoding and limit categories to surface map values
 
     Args:
-        surfaces (pd.Series)): Series containing all playing surfaces
+        surfaces (pd.Series): Series containing all playing surfaces
         surface_map (Dict[str, str]): Map indicating what to rename certain surfaces to
 
     Returns:
