@@ -39,7 +39,7 @@ def score_to_int(score: pd.Series) -> np.ndarray:
 
     # each set denoted by space ie `6-0 6-1`
     # split and apply creates dataframe with column for each set
-    set_df = score.str.split(' ').apply(pd.Series)
+    set_df = score.str.split(' ', expand=True)
 
     # empty array to be filled with game scores
     game_scores = np.zeros((len(score), 6))
@@ -50,7 +50,7 @@ def score_to_int(score: pd.Series) -> np.ndarray:
     for i, (_, set_series) in enumerate(set_df.iteritems()):
         i *= 2
         # df of w_game and l_games in set: 6-0 -> 6, 0
-        set_games = set_series.str.split('-').apply(pd.Series)
+        set_games = set_series.str.split('-', expand=True)  # .apply(pd.Series)
         # errors coerce means if not numeric give null
         game_scores[:, i:i+2] = set_games.apply(pd.to_numeric, errors='coerce')
 
@@ -63,12 +63,12 @@ def score_to_int(score: pd.Series) -> np.ndarray:
     # winner must win at least 2 sets
     w_sets[w_sets < 2] = np.NaN
 
-    return np.array([
+    return np.column_stack((
         game_scores[:, w_set_cols].sum(axis=1),
         w_sets,
         game_scores[:, l_set_cols].sum(axis=1),
         # 2 - nan will return nan
-        2 - w_sets]).T
+        2 - w_sets))
 
 
 def surface_to_one_hot(surfaces: pd.Series, surface_map: Dict[str, str]) -> Tuple[np.array]:
