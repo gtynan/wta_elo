@@ -17,13 +17,13 @@ def get_surface_weights(one_hot_surface: np.array, surface_weight: Union[float, 
     """
     # only surface in play will be != 0
     s_weights = one_hot_surface*surface_weight
-    # try:
-    # base takes all weight not assigned to surface, reshape so that 2d
-    base_weight = 1 - s_weights.sum(axis=1).reshape(-1, 1)
-    s_weight = np.append(s_weights, base_weight, axis=1)
-    # except np.AxisError:
-    #     base_weight = 1 - s_weights.sum()
-    #     s_weight = np.append(s_weights, base_weight)
+    try:
+        # base takes all weight not assigned to surface, reshape so that 2d
+        base_weight = 1 - s_weights.sum(axis=1).reshape(-1, 1)
+        s_weight = np.append(s_weights, base_weight, axis=1)
+    except np.AxisError:
+        base_weight = 1 - s_weights.sum()
+        s_weight = np.append(s_weights, base_weight)
     return s_weight, (s_weight > 0).astype(int)
 
 
@@ -44,10 +44,10 @@ def get_current_ability(
         float: Players current surface specific ability
     """
     assert c_ability.shape == at_ability.shape == s_weights.shape
-    # try:
-    c_ab = np.sum(c_ability*s_weights, axis=1)*(1 - at_weight) + np.sum(at_ability*s_weights, axis=1)*at_weight
-    # except np.AxisError:
-    #     c_ab = np.sum(c_ability*s_weights)*(1 - at_weight) + np.sum(at_ability*s_weights)*at_weight
+    try:
+        c_ab = np.sum(c_ability*s_weights, axis=1)*(1 - at_weight) + np.sum(at_ability*s_weights, axis=1)*at_weight
+    except np.AxisError:
+        c_ab = np.sum(c_ability*s_weights)*(1 - at_weight) + np.sum(at_ability*s_weights)*at_weight
 
     return c_ab + c_ab*c_trend*trend_weight
 
@@ -146,3 +146,166 @@ def get_updated_trend(c_trend: float, performance: float, update_rate: float) ->
         float: updated trend
     """
     return c_trend*(1 - update_rate) + performance*update_rate
+
+
+def elo_single_round(params: Dict[str, float],
+                     data: pd.DataFrame,
+                     w_id_col: str,
+                     w_games_col: str,
+                     w_sets_col: str,
+                     l_id_col: str,
+                     l_games_col: str,
+                     l_sets_col: str,
+                     surface_cols: List[str],
+                     itf_col: str,
+                     player_abs: np.array,
+                     games_played: np.array,
+                     player_trend: np.array,
+                     at_abilities: np.array) -> Tuple[np.array]:
+    """ELO runs over dates this function runs a single date and returns updated player specific data and predicted probs
+
+    Args:
+        params (Dict[str, float]): ELO model parameters (parameters.yml)
+        data (pd.DataFrame): Match dataframe
+        w_id_col (str): Column with winner ids
+        w_games_col (str): Columns with games won by winner
+        w_sets_col (str): Columns with sets won by winner
+        l_id_col (str): Column with loser ids
+        l_games_col (str): Columns with games won by loser
+        l_sets_col (str): Columns with games won by loser
+        surface_cols (List[str]): Columns of 1 hot encoding of surfaces
+        itf_col (str): Column with bool indicator if game on itf circuit
+        player_abs (np.array): current player abilities
+        games_played (np.array): games played previously
+        player_trend (np.array): current trend
+        at_abilities (np.array): all time max abilities
+
+    Returns:
+        Tuple[np.array]: (UPDATED) player_abs, games_played, player_trend, at_abilities, probs
+    """
+    w_id, l_id = data[w_id_col].values, data[l_id_col].values
+
+    s_weights, playing_surface = get_surface_weights(
+        one_hot_surface=data[surface_cols].values, surface_weight=params['surface_weight'])
+
+    # winner & loser current ability prior to game
+    w_ability = get_current_ability(
+        c_ability=player_abs[w_id],
+        at_ability=at_abilities[w_id],
+        s_weights=s_weights,
+        at_weight=params['all_time_weight'],
+        c_trend=player_trend[w_id],
+        trend_weight=params['trend_weight'])
+
+    l_ability = get_current_ability(
+        c_ability=player_abs[l_id],
+        at_ability=at_abilities[l_id],
+        s_weights=s_weights,
+        at_weight=params['all_time_weight'],
+        c_trend=player_trend[l_id],
+        trend_weight=params['trend_weight'])
+
+    probs = get_probs(player_a=w_ability, player_b=l_ability)
+
+    w_performance, l_performance = get_performance_score(
+        probs=probs, g_won=data[w_games_col].values, g_lost=data[l_games_col].values, s_won=data[w_sets_col].values,
+        s_lost=data[l_sets_col].values, p=params['p'],
+        s_boost=params['straight_sets_boost'])
+
+    itf_indicator = (data[itf_col] == 'I').values.reshape(-1, 1)
+
+    w_k_factor = get_k_factor(
+        games_played=games_played[w_id],
+        K=params['K'],
+        offset=params['offset'],
+        shape=params['shape'],
+        ift_indicator=itf_indicator,
+        itf_deduction=params['itf_deduction'])
+
+    l_k_factor = get_k_factor(
+        games_played=games_played[l_id],
+        K=params['K'],
+        offset=params['offset'],
+        shape=params['shape'],
+        ift_indicator=itf_indicator,
+        itf_deduction=params['itf_deduction'])
+
+    player_abs[w_id] += get_ability_change(k_factor=w_k_factor,
+                                           p_score=w_performance.reshape(-1, 1), playing_surface=playing_surface)
+    player_abs[l_id] += get_ability_change(k_factor=l_k_factor,
+                                           p_score=l_performance.reshape(-1, 1), playing_surface=playing_surface)
+
+    # due to performance score although unlikely is possible losers ability increases and thus could be max observed
+    at_abilities[w_id] = np.maximum(player_abs[w_id], at_abilities[w_id])
+    at_abilities[l_id] = np.maximum(player_abs[l_id], at_abilities[l_id])
+
+    player_trend[w_id] = get_updated_trend(c_trend=player_trend[w_id],
+                                           performance=w_performance, update_rate=params['trend_rate'])
+    player_trend[l_id] = get_updated_trend(c_trend=player_trend[l_id],
+                                           performance=l_performance, update_rate=params['trend_rate'])
+
+    games_played[w_id] += playing_surface
+    games_played[l_id] += playing_surface
+
+    return player_abs, games_played, player_trend, at_abilities, probs
+
+
+def elo(params: Dict[str, float],
+        data: pd.DataFrame,
+        date_col: str,
+        w_id_col: str,
+        w_games_col: str,
+        w_sets_col: str,
+        l_id_col: str,
+        l_games_col: str,
+        l_sets_col: str,
+        surface_cols: List[str],
+        itf_col: str,
+        player_abs: np.array,
+        games_played: np.array,
+        player_trend: np.array,
+        at_abilities: np.array) -> Tuple[np.array]:
+    """Main ELO model
+
+    Args:
+        params (Dict[str, float]): ELO model parameters (parameters.yml)
+        data (pd.DataFrame): Match dataframe
+        date_col (str): Column with date
+         w_id_col (str): Column with winner ids
+        w_games_col (str): Columns with games won by winner
+        w_sets_col (str): Columns with sets won by winner
+        l_id_col (str): Column with loser ids
+        l_games_col (str): Columns with games won by loser
+        l_sets_col (str): Columns with games won by loser
+        surface_cols (List[str]): Columns of 1 hot encoding of surfaces
+        itf_col (str): Column with bool indicator if game on itf circuit
+        player_abs (np.array): current player abilities
+        games_played (np.array): games played previously
+        player_trend (np.array): current trend
+        at_abilities (np.array): all time max abilities
+
+    Returns:
+        Tuple[np.array]: (UPDATED) player_abs, games_played, player_trend, at_abilities, probs (SORTED BY DATE)
+    """
+
+    # ensure not altering passed df and rely on sequential index to update arrays
+    #data = data.copy(deep=True)
+
+    player_abs = deepcopy(player_abs)
+    games_played = deepcopy(games_played)
+    player_trend = deepcopy(player_trend)
+    at_abilities = deepcopy(at_abilities)
+
+    overall_probs = np.empty((len(data),))
+
+    for _, date_df in data.groupby(date_col):
+
+        player_abs, games_played, player_trend, at_abilities, p = elo_single_round(
+            params=params, data=date_df, w_id_col=w_id_col, w_games_col=w_games_col, w_sets_col=w_sets_col,
+            l_id_col=l_id_col, l_games_col=l_games_col, l_sets_col=l_sets_col, surface_cols=surface_cols,
+            itf_col=itf_col, player_abs=player_abs, games_played=games_played, player_trend=player_trend,
+            at_abilities=at_abilities)
+
+        overall_probs[date_df.index] = p
+
+    return player_abs, games_played, player_trend, at_abilities, overall_probs
