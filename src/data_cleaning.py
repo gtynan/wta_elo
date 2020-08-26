@@ -80,6 +80,8 @@ def surface_to_one_hot(surfaces: pd.Series, surface_map: Dict[str, str]) -> Tupl
     Returns:
         Tuple[np.array]: surface categories, One hot surface encoding
     """
+    np.testing.assert_array_equal(sorted(list(surface_map.keys())), sorted(surfaces.unique()))
+
     surfaces = surfaces.map(surface_map)
     surface_categories = np.unique(list(surface_map.values()))
     return surface_categories, pd.get_dummies(pd.Categorical(surfaces, categories=surface_categories)).values
@@ -89,6 +91,8 @@ def surface_to_one_hot(surfaces: pd.Series, surface_map: Dict[str, str]) -> Tupl
 def get_inferred_date(
         data: pd.DataFrame, t_name_col: str, t_date_col: str, round_col: str, round_order: List[str]
 ) -> pd.Series:
+
+    np.testing.assert_array_equal(sorted(round_order), sorted(data[round_col].unique()))
 
     # copying to ensure don't alter original
     data = data[[t_name_col, t_date_col, round_col]].copy(deep=True)
