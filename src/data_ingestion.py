@@ -18,7 +18,7 @@ def get_raw_games(
     """
     file_path = RAW_DATA_FILE_PATH.format(filename, year_from, year_to)
     try:
-        return pd.read_csv(file_path)
+        return pd.read_csv(file_path, index_col=0, encoding="ISO-8859-1", low_memory=False)
     except:
         data = None
         for year in range(year_from, year_to + 1):
