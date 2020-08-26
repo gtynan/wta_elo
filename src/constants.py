@@ -1,4 +1,6 @@
 PIPELINE_DATA_FILE = 'pipeline_data'
+YEAR_FROM = 2009
+YEAR_TO = 2020
 
 # raw data saved here:
 # 0 = filename, 1 = year from, 2 = year to
@@ -35,3 +37,16 @@ J_SURFACE_COL = 'surface'
 J_T_DATE = 'tourney_date'
 J_T_NAME = 'tourney_name'
 J_ROUND = 'round'
+
+PARAMS = {
+    'K': 269.95,
+    'offset': 1,
+    'shape': .261,
+    'surface_weight': .121,
+    'itf_deduction': .339,
+    'p': .53,
+    'straight_sets_boost': .072,
+    'trend_rate': .285,
+    'trend_weight': .0736,
+    'all_time_weight': .598,
+}
