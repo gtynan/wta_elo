@@ -91,7 +91,19 @@ def surface_to_one_hot(surfaces: pd.Series, surface_map: Dict[str, str]) -> Tupl
 def get_inferred_date(
         data: pd.DataFrame, t_name_col: str, t_date_col: str, round_col: str, round_order: List[str]
 ) -> pd.Series:
+    """Jeff sackman's data does not have individual dates for each match within a tournament. 
+    This function will create dates based on tournament start dates and the round the match is being played within the tournament 
 
+    Args:
+        data (pd.DataFrame): Dataframe 
+        t_name_col (str): Column containing tournament name
+        t_date_col (str): Column containing tournament start date
+        round_col (str): Column containing round match is being played within tournament
+        round_order (List[str]): Round hierarchy, earlier to later 
+
+    Returns:
+        pd.Series: inferred dates with original dataframe index
+    """
     np.testing.assert_array_equal(sorted(round_order), sorted(data[round_col].unique()))
 
     # copying to ensure don't alter original
