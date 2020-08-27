@@ -1,8 +1,12 @@
 from typing import Tuple, Dict, List
 import pandas as pd
 import numpy as np
+import logging
+
+from ..logging_functions import timeit
 
 
+@timeit
 def get_player_map(data: pd.DataFrame, w_col: str, l_col: str) -> Tuple[Dict[str, int], np.ndarray]:
     """Generates a dictionary containing each players name as key and a unique int as value, also returns winner and loser columns mapped to new int id
 
@@ -25,6 +29,7 @@ def get_player_map(data: pd.DataFrame, w_col: str, l_col: str) -> Tuple[Dict[str
     return player_map, np.column_stack((w_ids, l_ids))
 
 
+@timeit
 def score_to_int(score: pd.Series) -> np.ndarray:
     """Converts series of string scores to int values representing games and sets won by winner and loser.
 
@@ -70,6 +75,7 @@ def score_to_int(score: pd.Series) -> np.ndarray:
     return score_matrix
 
 
+@timeit
 def surface_to_one_hot(surfaces: pd.Series, surface_map: Dict[str, str]) -> Tuple[np.array]:
     """Convert surface to one hot encoding and limit categories to surface map values
 
@@ -86,6 +92,7 @@ def surface_to_one_hot(surfaces: pd.Series, surface_map: Dict[str, str]) -> Tupl
 
 
 # series to preserve index (despite sorting within function)
+@timeit
 def get_inferred_date(
         data: pd.DataFrame, t_name_col: str, t_date_col: str, round_col: str, round_order: List[str]
 ) -> pd.Series:
