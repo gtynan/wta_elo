@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 
-from src.data_cleaning import score_to_int, get_player_map, surface_to_one_hot, get_inferred_date
+from src.data_ingestion.data_cleaning import score_to_int, get_player_map, surface_to_one_hot, get_inferred_date
 from src.constants import J_SURFACE_COL, SURFACE_MAP, J_T_DATE, J_T_NAME, J_ROUND, ROUND_ORDER
 
 

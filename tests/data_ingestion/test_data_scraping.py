@@ -2,7 +2,7 @@ import pytest
 from os import path
 from datetime import datetime
 
-from src.data_ingestion import get_raw_games
+from src.data_ingestion.data_scraping import get_raw_games
 from src.constants import PIPELINE_DATA_FILE, RAW_DATA_FILE_PATH
 
 
