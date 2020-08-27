@@ -1,8 +1,12 @@
 from typing import Tuple, Dict, List
 import pandas as pd
 import numpy as np
+import logging
+
+from ..logging_functions import timeit
 
 
+@timeit
 def get_player_map(data: pd.DataFrame, w_col: str, l_col: str) -> Tuple[Dict[str, int], np.ndarray]:
     """Generates a dictionary containing each players name as key and a unique int as value, also returns winner and loser columns mapped to new int id
 
@@ -25,6 +29,7 @@ def get_player_map(data: pd.DataFrame, w_col: str, l_col: str) -> Tuple[Dict[str
     return player_map, np.column_stack((w_ids, l_ids))
 
 
+@timeit
 def score_to_int(score: pd.Series) -> np.ndarray:
     """Converts series of string scores to int values representing games and sets won by winner and loser.
 
@@ -70,6 +75,7 @@ def score_to_int(score: pd.Series) -> np.ndarray:
     return score_matrix
 
 
+@timeit
 def surface_to_one_hot(surfaces: pd.Series, surface_map: Dict[str, str]) -> Tuple[np.array]:
     """Convert surface to one hot encoding and limit categories to surface map values
 
@@ -80,16 +86,30 @@ def surface_to_one_hot(surfaces: pd.Series, surface_map: Dict[str, str]) -> Tupl
     Returns:
         Tuple[np.array]: surface categories, One hot surface encoding
     """
+    surfaces.loc[surfaces.isnull()] = surfaces.value_counts().index[0]  #  replace nulls with most common surface
     surfaces = surfaces.map(surface_map)
     surface_categories = np.unique(list(surface_map.values()))
     return surface_categories, pd.get_dummies(pd.Categorical(surfaces, categories=surface_categories)).values
 
 
 # series to preserve index (despite sorting within function)
+@timeit
 def get_inferred_date(
         data: pd.DataFrame, t_name_col: str, t_date_col: str, round_col: str, round_order: List[str]
 ) -> pd.Series:
+    """Jeff sackman's data does not have individual dates for each match within a tournament. 
+    This function will create dates based on tournament start dates and the round the match is being played within the tournament 
 
+    Args:
+        data (pd.DataFrame): Dataframe 
+        t_name_col (str): Column containing tournament name
+        t_date_col (str): Column containing tournament start date
+        round_col (str): Column containing round match is being played within tournament
+        round_order (List[str]): Round hierarchy, earlier to later 
+
+    Returns:
+        pd.Series: inferred dates with original dataframe index
+    """
     # copying to ensure don't alter original
     data = data[[t_name_col, t_date_col, round_col]].copy(deep=True)
     # round as ordered categorical

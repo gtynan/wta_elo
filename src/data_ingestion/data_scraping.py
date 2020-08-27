@@ -1,8 +1,11 @@
 import pandas as pd
+import logging
 
-from .constants import RAW_DATA_FILE_PATH, WTA_URL, ITF_URL, SOURCE_COL
+from ..constants import RAW_DATA_FILE_PATH, WTA_URL, ITF_URL, SOURCE_COL
+from ..logging_functions import timeit
 
 
+@timeit
 def get_raw_games(
         filename: str, year_from: int, year_to: int, save: bool = True) -> pd.DataFrame:
     """Gets all WTA and ITF games, given a filename will initially try and load if dataset exists otherwise will download and save
@@ -17,8 +20,11 @@ def get_raw_games(
         pd.DataFrame: raw dataframe of games with additional column `source` indicating origin
     """
     file_path = RAW_DATA_FILE_PATH.format(filename, year_from, year_to)
+
     try:
-        return pd.read_csv(file_path, index_col=0, encoding="ISO-8859-1", low_memory=False)
+        data = pd.read_csv(file_path, index_col=0, encoding="ISO-8859-1", low_memory=False)
+        logging.debug('GOT DATA: FROM FILE')
+
     except:
         data = None
         for year in range(year_from, year_to + 1):
@@ -34,6 +40,11 @@ def get_raw_games(
                 data = new_wta
             data = data.append(new_itf, ignore_index=True)
 
+            logging.debug(f'GOT DATA: {year}')
+
         if save:
             data.to_csv(file_path)
-        return data
+            logging.debug('DATA SAVED TO FILE')
+
+    logging.debug(f'DATA LOADED: Total = {len(data)}')
+    return data
