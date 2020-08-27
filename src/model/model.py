@@ -43,7 +43,7 @@ def get_current_ability(
     Returns:
         float: Players current surface specific ability
     """
-    assert c_ability.shape == at_ability.shape == s_weights.shape
+    assert c_ability.shape == at_ability.shape
     try:
         c_ab = np.sum(c_ability*s_weights, axis=1)*(1 - at_weight) + np.sum(at_ability*s_weights, axis=1)*at_weight
     except np.AxisError:
