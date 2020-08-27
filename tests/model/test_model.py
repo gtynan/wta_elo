@@ -4,7 +4,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 from src.constants import PARAMS
-from src.model import (
+from src.model.model import (
     get_probs, get_k_factor, get_surface_weights, get_current_ability, get_performance_score, get_log_likelihood,
     get_ability_change, get_updated_trend, elo_single_round)
 

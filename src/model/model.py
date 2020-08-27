@@ -288,9 +288,6 @@ def elo(params: Dict[str, float],
         Tuple[np.array]: (UPDATED) player_abs, games_played, player_trend, at_abilities, probs (SORTED BY DATE)
     """
 
-    # ensure not altering passed df and rely on sequential index to update arrays
-    #data = data.copy(deep=True)
-
     player_abs = deepcopy(player_abs)
     games_played = deepcopy(games_played)
     player_trend = deepcopy(player_trend)
