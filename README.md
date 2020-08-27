@@ -13,7 +13,7 @@ Full write up: [SOURCE](dissertation.pdf)
 
 ## 1 - Setup
 
-Download dependencies: 
+Install dependencies: 
 
 ```
 poetry install
