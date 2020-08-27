@@ -9,7 +9,7 @@ Dissertation expanding upon [538's tennis prediction ELO model](https://fivethir
 - Considers a players historical as well as current ability.
 - Considers players form in an attempt to preempt upsets.
 
-Full write up: [source](dissertation.pdf)
+Full write up: [SOURCE](dissertation.pdf)
 
 ## 1 - Setup
 
@@ -17,12 +17,11 @@ TODO Poetry setup
 
 ## 2 - Running
 
-### 2.1 - Basic
 
 Arguments (all required):
 - yf - year from (**WARNING:** don't go pre 2010)
 - yt - year to 
-- ts - test size in years
+- ts - test size (in years)
 
 **Sample:**
 
@@ -32,10 +31,12 @@ Gets data from 2010 to 2020, fits to 2000 -> 2018 and predicts on 2019 and 2020
 python run --yf 2010 --yt 2020 --ts 2 
 ```
 
-### 2.2 - Retrain model 
-
 ## 3 - Results 
 
 All model outputs are saved to `data/03_output/`.
 
-# Todo visuals
+These include:
+- Model performance (accuracy and brier scores) 
+- Rankings (as of end of test data)
+- Model calibration
+- Predictions appended to test data
