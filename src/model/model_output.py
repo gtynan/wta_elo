@@ -19,7 +19,7 @@ def get_rankings(player_map: Dict[str, int],
         player_abilities (np.ndarray): Current player abilities
         player_trend (np.ndarray): Current player trends
         player_at_abilities (np.ndarray): All time max player abilities
-        surfaces (List[str]): Surfaces abilities correspond to (assumes last column in abilities is Base) 
+        surfaces (List[str]): Surfaces abilities correspond to (assumes last column in abilities is Base)
 
     Returns:
         pd.DataFrame: Current rankings with column for each surface
@@ -75,3 +75,24 @@ def get_model_calibration(p: np.array, source: np.array) -> plt.figure:
     ax.set_ylabel('Fraction of positives')
 
     return f
+
+
+def get_model_performance(p: np.array, source: np.array) -> str:
+    """Formats model performance into string"""
+
+    itf_predictions = p[source == 'I']
+    wta_predictions = p[source == 'W']
+
+    return f"""
+Overall Total: {len(p)}
+Overall accuracy: {len(p[p > 0.5]) / len(p)}
+Overall brier score: {np.mean((1 - p)**2)}
+
+WTA total: {len(wta_predictions)}
+WTA accuracy: {len(wta_predictions[wta_predictions > 0.5]) / len(wta_predictions)}
+WTA brier score: {np.mean((1 - wta_predictions)**2)}
+
+ITF total: {len(itf_predictions)}
+ITF accuracy: {len(itf_predictions[itf_predictions > 0.5]) / len(itf_predictions)}
+ITF brier score: {np.mean((1 - itf_predictions)**2)}
+    """
