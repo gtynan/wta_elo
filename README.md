@@ -13,7 +13,17 @@ Full write up: [SOURCE](dissertation.pdf)
 
 ## 1 - Setup
 
-TODO Poetry setup
+Download dependencies: 
+
+```
+poetry install
+```
+
+Activate environment:
+
+```
+poetry shell
+```
 
 ## 2 - Running
 
