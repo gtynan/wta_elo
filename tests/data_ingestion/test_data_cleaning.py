@@ -40,7 +40,7 @@ def test_score_to_int():
 
 def test_surface_to_one_hot():
 
-    surfaces = pd.Series(data=np.array(["Grass", "Hard", "Clay", "Carpet"]))
+    surfaces = pd.Series(data=np.array(["Grass", "Hard", "Clay", "Carpet", "Hard", pd.NaT]))
 
     s_categories, s_one_hot = surface_to_one_hot(surfaces, SURFACE_MAP)
     t_data = pd.DataFrame(data=s_one_hot, columns=s_categories)
@@ -49,6 +49,8 @@ def test_surface_to_one_hot():
     assert t_data.loc[1, 'Hard'] == 1
     assert t_data.loc[2, 'Clay'] == 1
     assert t_data.loc[3, 'Grass'] == 1
+    assert t_data.loc[4, 'Hard'] == 1
+    assert t_data.loc[5, 'Hard'] == 1
     assert all(t_data.sum(axis=1) == 1)
 
 

@@ -86,6 +86,7 @@ def surface_to_one_hot(surfaces: pd.Series, surface_map: Dict[str, str]) -> Tupl
     Returns:
         Tuple[np.array]: surface categories, One hot surface encoding
     """
+    surfaces.loc[surfaces.isnull()] = surfaces.value_counts().index[0]  #  replace nulls with most common surface
     surfaces = surfaces.map(surface_map)
     surface_categories = np.unique(list(surface_map.values()))
     return surface_categories, pd.get_dummies(pd.Categorical(surfaces, categories=surface_categories)).values
