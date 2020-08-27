@@ -10,6 +10,9 @@ logging.basicConfig(level=logging.DEBUG,
                     filename=f'logs/PIPELINE_RUN: {datetime.now()}.log',
                     format=' %(asctime)s - %(levelname)s - %(message)s',)
 
+# stop matplotlib fonts appending to logs
+logging.getLogger('matplotlib.font_manager').disabled = True
+
 
 if __name__ == "__main__":
     # run()
