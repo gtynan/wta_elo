@@ -17,7 +17,6 @@ TODO Poetry setup
 
 ## 2 - Running
 
-
 Arguments (all required):
 - yf - year from (**WARNING:** don't go pre 2010)
 - yt - year to 
