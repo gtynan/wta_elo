@@ -1,11 +1,11 @@
 PIPELINE_DATA_FILE = 'pipeline_data'
-YEAR_FROM = 2009
-YEAR_TO = 2020
 
 # raw data saved here:
 # 0 = filename, 1 = year from, 2 = year to
 RAW_DATA_FILE_PATH = 'data/01_raw/{0}_from_{1}_to_{2}.csv'
 CLEAN_DATA_FILE_PATH = 'data/02_clean/{0}_from_{1}_to_{2}.csv'
+
+MODEL_OUTPUT_FOLDER = 'data/03_output/'
 
 # urls
 WTA_URL = "https://raw.githubusercontent.com/JeffSackmann/tennis_wta/master/wta_matches_{}.csv"
@@ -30,6 +30,7 @@ ROUND_ORDER = [
 
 # various columns, jeff sackman columns prefixed with J
 SOURCE_COL = 'source'
+
 J_WINNER_COL = 'winner_name'
 J_LOSER_COL = 'loser_name'
 J_SCORE_COL = 'score'

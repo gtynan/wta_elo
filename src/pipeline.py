@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime
 import logging
 
-from .constants import PIPELINE_DATA_FILE, YEAR_FROM, YEAR_TO, CLEAN_DATA_FILE_PATH, SURFACE_MAP, ROUND_ORDER, PARAMS, SOURCE_COL, J_SURFACE_COL, J_WINNER_COL, J_LOSER_COL, J_SCORE_COL, J_T_NAME, J_T_DATE, J_ROUND
+from .constants import PIPELINE_DATA_FILE, CLEAN_DATA_FILE_PATH, MODEL_OUTPUT_FOLDER, SURFACE_MAP, ROUND_ORDER, PARAMS, SOURCE_COL, J_SURFACE_COL, J_WINNER_COL, J_LOSER_COL, J_SCORE_COL, J_T_NAME, J_T_DATE, J_ROUND
 from .data_ingestion.data_scraping import get_raw_games
 from .data_ingestion.data_cleaning import score_to_int, get_player_map, surface_to_one_hot, get_inferred_date
 from .model.model import elo
@@ -15,7 +15,6 @@ from .logging_functions import timeit
 def run(year_from: int, year_to: int, test_size: int):
     """Runs pipeline
     """
-
     assert (year_to - year_from - test_size) > 0
 
     # scraping
@@ -72,14 +71,14 @@ def run(year_from: int, year_to: int, test_size: int):
 
     # output
     test_data['p'] = test_predictions
-    test_data.to_csv('data/03_output/test_predictions.csv')
+    test_data.to_csv(f'{MODEL_OUTPUT_FOLDER}test_predictions.csv')
 
     model_performance = get_model_performance(test_predictions, test_data[SOURCE_COL].values)
-    with open('data/03_output/test_model_performance.txt', 'w+') as txt:
+    with open(f'{MODEL_OUTPUT_FOLDER}test_model_performance.txt', 'w+') as txt:
         txt.write(model_performance)
 
     fitted_ranking = get_rankings(player_map, test_abilities, test_trend, test_alltime, s_categories)
-    fitted_ranking.to_csv('data/03_output/test_rankings.csv')
+    fitted_ranking.to_csv(f'{MODEL_OUTPUT_FOLDER}test_rankings.csv')
 
     calibration_fig = get_model_calibration(test_predictions, test_data[SOURCE_COL].values)
-    calibration_fig.savefig('data/03_output/test_model_calibration.png')
+    calibration_fig.savefig(f'{MODEL_OUTPUT_FOLDER}test_model_calibration.png')
